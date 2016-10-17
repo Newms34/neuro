@@ -63,3 +63,74 @@ html,body{
 	background:#0f0;
 	box-shadow: 0 0 5px 5px #0f0;
 }
+#en-meter-outer{
+	position:absolute;
+	height:25px;
+	width:100%;
+	background:#777;
+	border:2px outset #777;
+}
+#en-meter-inner{
+	position: absolute;
+	height:80%;
+	top:15%;
+	left:.5%;
+	width:99%;
+	background:#222;
+	border:2px inset #777;
+}
+#en-meter-meter{
+	position: absolute;
+	background:#f00;
+	height:100%;
+	width:50px;
+}
+#prey{
+	position:absolute;
+	left:0px;
+	top:0px;
+	border-radius: 50%;
+	height:30px;
+	width:30px;
+	background:#900;
+	color:#fff;
+	font-size: x-large;
+}
+#playfield{
+	top:50%;
+	height:50%;
+	left:0.5%;
+	width:99%;
+	position:absolute;
+	background:#090;
+	z-index:-1;
+}
+#controls{
+	z-index:5;
+}
+#org{
+	font-size: x-large;
+	position:absolute;
+	left:0px;
+	top:0px;
+	border-radius: 50%;
+	height:30px;
+	width:30px;
+	background:#009;
+	color:#fff;
+}
+.sensor{
+	background:#000;
+	width:6px;
+	height:6px;
+	border:2px solid #fff;
+	border-radius: 50%;
+	position: absolute;
+	top:3.5px;
+}
+#sensL{
+	left:4px;
+}
+#sensR{
+	left:19px;
+}
