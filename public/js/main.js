@@ -285,12 +285,12 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
     }
     $scope.die = function(l, r,isGood) {
         //calc score
-        var score = ($scope.remainingEn / 120000) * 100; //time remaining
-        score += 200 * (l + r) / 2;
+        var score = ($scope.remainingEn / 120000) * 200; //time remaining
+        score += 400 * (l + r) / 2;
         //success?
         if (isGood){
-            score += $scope.org.y<$scope.prey.y?20:0;
-            score += 30*($scope.playw-Math.abs($scope.prey.x - $scope.org.x))/$scope.playw;
+            score += $scope.org.y<$scope.prey.y?40:0;
+            score += 60*($scope.playw-Math.abs($scope.prey.x - $scope.org.x))/$scope.playw;
         }
         //find out what to do with score;
         if (score > $scope.lastScore) {

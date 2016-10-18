@@ -1,5 +1,7 @@
 #Neuron Simulation
 
+![Screenshot](http://i.imgur.com/Il2rYhS.png)
+
 ##Contents:
  - [Purpose](#purpose)
  - [Installation and Running](#installation-and-running)
@@ -36,9 +38,9 @@ The simulation ends when any of the following occur:
 ###Score:
  The score is comprised of three factors: 
 
-  - Total energy remaining. Maximum of 100 points.
-  - Average distance from both 'eyes'. Small distance is better, for a maximum of 200 points.
-  - The angle at which the organism contacts the prey, if it does. Maximum of 50 points.
+  - Total energy remaining. Maximum of 200 points.
+  - Average distance from both 'eyes'. Small distance is better, for a maximum of 400 points.
+  - The angle at which the organism contacts the prey, if it does. Maximum of 100 points.
 
 ##Other Notes
  - Uncheck the checkbox at any time to halt the simulation.
