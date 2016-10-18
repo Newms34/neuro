@@ -19,10 +19,23 @@
     </div>
     <button ng-click='showCons = !showCons' class='btn btn-success pull-right'>&#9881;</button> 
     <div class='container panel panel-success panel-body' id='controls' ng-show='showCons'>
+        <div class = 'row'>Best score: {{lastScore}}</div>
         <div class='row'>
             <div class='col-md-3'>Uncheck to halt</div>
             <div class='col-md-6'>
                 <input type='checkbox' ng-model='okayRun' />
+            </div>
+        </div>
+        <div class='row'>
+            <div class='col-md-3'>Auto-repeat</div>
+            <div class='col-md-6'>
+                <input type='checkbox' ng-model='rpt'/>
+            </div>
+        </div>
+        <div class='row'>
+            <div class='col-md-3'>Speed</div>
+            <div class='col-md-6'>
+                <input type='range' min='1' max = '100' ng-model='speedRaw' ng-change='changeSpeed()'/>
             </div>
         </div>
         <div class='row'>
@@ -41,13 +54,12 @@
                 <button class='btn btn-primary' ng-click='startSim()' ng-disabled='hasStarted'>Go</button>
             </div>
             <div class='col-md-4'>
-                <button class='btn btn-danger'>Reset</button>
+                <button class='btn btn-danger' ng-click='resetBrain()'>Reset</button>
             </div>
         </div>
     </div>
     <div class='container' id='playfield'>
         <div id='org' style='left:{{org.x}}px;top:{{org.y}}px;'>
-        {{org.x}},{{org.y}}
             <div class='sensor' id='sensL'></div>
             <div class='sensor' id='sensR'></div>
         </div>
