@@ -9,6 +9,7 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
     $scope.ins = [];
     $scope.numIns = 5;
     $scope.numOuts = 7;
+    $scope.lastDeath = null;
     $scope.speed = 150;
     $scope.speedRaw = 86;
     $scope.prey = {
@@ -247,18 +248,23 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
         //halt/death options
         if ($scope.activeNeurs / $scope.numNeurs > .95) {
             console.log('Death from: overheat at',new Date().getTime())
+            $scope.lastDeath = 'Overheat'
             $scope.die(distL, distR);
         } else if ($scope.remainingEn <= 0) {
             console.log('Death from: lack of energy at',new Date().getTime())
+            $scope.lastDeath = 'Lack of energy'
             $scope.die(distL, distR);
         } else if (!newActive.length && $scope.hasStarted) {
             console.log('Death from: lack of neural activity at',new Date().getTime())
+            $scope.lastDeath = 'Lack of neural activity'
             $scope.die(distL, distR);
         } else if (!$scope.okayRun) {
             console.log('Death from: killed at',new Date().getTime())
+            $scope.lastDeath = 'User'
             $scope.die(distL, distR);
         } else if(Math.sqrt(Math.pow(($scope.org.x - $scope.prey.x), 2) + Math.pow(($scope.org.y - $scope.prey.y), 2))<35){
             console.log('Successful hunt!')
+            $scope.lastDeath = 'Successful hunt'
             $scope.die(distL,distR,true);
         }else {
             var t = setTimeout(function() {
@@ -324,6 +330,23 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
         for (var i = 0; i < $scope.neurons.length; i++) {
             $scope.neurons[i].active = false;
         }
+        for (var j=0; j<$scope.ins.length;j++){
+            $scope.ins[j].active = false;
+        }
+        for (var k=0; k<$scope.outs.length;k++){
+            $scope.outs[k].active = false;
+        }
+        $scope.prey = {
+        x: $scope.w * .5,
+        y: $scope.h * .5,
+        dx: (Math.random() * 10) - 5,
+        dy: (Math.random() * 10) - 5,
+        facing: 0
+    }
+    $scope.org = {
+        x: 0,
+        y: 0
+    }
         $scope.startSim();
     }
 

@@ -19,7 +19,13 @@
     </div>
     <button ng-click='showCons = !showCons' class='btn btn-success pull-right'>&#9881;</button> 
     <div class='container panel panel-success panel-body' id='controls' ng-show='showCons'>
-        <div class = 'row'>Best score: {{lastScore}}</div>
+        <div class = 'row'>
+            <div class='col-md-3'>Highest Score</div>
+            <div class='col-md-3'>
+                {{lastScore}}
+            </div>
+            <div class='col-md-3'>{{lastDeath}}</div>
+        </div>
         <div class='row'>
             <div class='col-md-3'>Uncheck to halt</div>
             <div class='col-md-6'>
