@@ -16,7 +16,6 @@
             </div>
             <div class='neuron' ng-repeat='n in neurons' style ='transform:translateX({{n.x}}px) translateY({{n.y}}px) translateZ({{is3d?n.z:0}}px) rotateY({{is3d?-mouseAng:0;}}deg);' ng-class="{'active-neur':n.active==true}">
                 <div class='conn' ng-repeat='c in n.o' style='transform:rotateY({{is3d?c.threeAng.h-mouseAng:0}}deg) rotateZ({{is3d?c.threeAng.v:c.ang}}deg);width:{{c.len}}px;height:{{c.weight*3}}px;' ng-class="{'an-out':tracePath && activePath[0] && activePath[0].toString().indexOf([$parent.$index][$index])!=-1}"></div>
-                <!-- Example: neuron 3 has conn 5 active: [[[3,5]][...]] -->
             </div>
         </div>
     </div>

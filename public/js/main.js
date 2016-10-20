@@ -254,7 +254,7 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
         for (var i = 0; i < $scope.activeNeurs.length; i++) {
             var probArr = [];
             for (var j = 0; j < $scope.neurons[$scope.activeNeurs[i]].o.length; j++) {
-                var numRepeats = Math.ceil($scope.neurons[$scope.activeNeurs[i]].o[j].weight * 15);
+                var numRepeats = Math.ceil($scope.neurons[$scope.activeNeurs[i]].o[j].weight * 99);
                 for (var k = 0; k < numRepeats; k++) {
                     probArr.push(j);
                 }
@@ -310,7 +310,7 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
         for (var m = 0; m < $scope.ins.length; m++) {
             var probArr = [];
             for (j = 0; j < $scope.ins[m].o.length; j++) {
-                var numRepeats = Math.ceil($scope.ins[m].o[j].weight * 15);
+                var numRepeats = Math.ceil($scope.ins[m].o[j].weight * 99);
                 for (var k = 0; k < numRepeats; k++) {
                     probArr.push(j);
                 }
