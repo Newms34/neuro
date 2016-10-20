@@ -8,6 +8,7 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
     $scope.outs = [];
     $scope.ins = [];
     $scope.numIns = 5;
+    $scope.numBaseCons = 5;
     $scope.numOuts = 7;
     $scope.lastDeath = null;
     $scope.speed = 150;
@@ -26,7 +27,7 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
     $scope.is3d = false;
     bootbox.dialog({
         title: 'Neuron Simulation Startup Options',
-        message: '<div class="form-group col-md-12"><div class="col-md-5">Number of neurons</div><div class="col-md-6"><input type="number" id="num-in" value="99"/></div></div><br/><br/><div class="form-group col-md-12"><div class="col-md-5">Enable 3d Brain</div><div class="col-md-6"><input type="checkbox" onchange = "angular.element(\'body\').scope().toggle3d();"/></div></div><br/><br/><div class="alert-danger" id="warn3d" style="display:none"><h4>Warning:</h4>3d brain rendering is a LOT more processor intensive!</div>',
+        message: '<div class="form-group col-md-12"><div class="col-md-5">Number of neurons</div><div class="col-md-6"><input type="number" id="num-in" value="99" /></div></div><br/><br/><div class="form-group col-md-12"><div class="col-md-5">Connections Per Neuron (percent of total)</div><div class="col-md-6"><div class="col-md-1">0%</div><div class="col-md-8"><input type="range" min="1" value ="20" max="50" id="numConnects"/></div><div class="col-md-1">50%</div></div></div><br/><br/><div class="form-group col-md-12"><div class="col-md-5">Enable 3d Brain</div><div class="col-md-6"><input type="checkbox" onchange="angular.element(\'body\').scope().toggle3d();" /></div></div><br/><br/><div class="alert-danger" id="warn3d" style="display:none"><h4>Warning:</h4>3d brain rendering is a LOT more processor intensive!</div>',
         buttons: {
             confirm: {
                 label: 'Create',
@@ -39,6 +40,8 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
                         bootbox.alert('Number of neurons too low!')
                     } else {
                         $scope.numNeurs = parseInt($('#num-in').val());
+                        $scope.numBaseCons = $scope.numNeurs*parseInt($('#numConnects').val())/100;
+                        console.log('Neurons:',$scope.numNeurs,'Connects per neuron',$scope.numBaseCons)
                         $scope.drawBoard();
                         return true;
                     }
@@ -176,7 +179,6 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
         $scope.$apply();
         // right eye
         $scope.ins.push(new $scope.inConst());
-        var numCons = Math.ceil(Math.random() * .1 * $scope.numNeurs);
         for (var j = 0; j < numCons; j++) {
             var whichTarg = false;
             var wt = 0.1 + (Math.random() * 0.8);
@@ -186,8 +188,7 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
         }
         $scope.$apply();
         for (i = 0; i < $scope.numNeurs; i++) {
-            var numCons = Math.ceil(Math.random() * .3 * $scope.numNeurs);
-            for (var j = 0; j < numCons; j++) {
+            for (var j = 0; j < $scope.numBaseCons; j++) {
                 var whichTarg = false;
                 var wt = 0.1 + (Math.random() * 0.8)
                 if (Math.random() < .98) {
