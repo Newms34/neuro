@@ -305,8 +305,8 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
             distL = ($scope.playw - Math.sqrt(Math.pow((leftEye.left - targPos.left), 2) + Math.pow((leftEye.top - targPos.top), 2))) / $scope.playw,
             distR = ($scope.playw - Math.sqrt(Math.pow((rightEye.left - targPos.left), 2) + Math.pow((rightEye.top - targPos.top), 2))) / $scope.playw;
 
-        $scope.ins[0].active = Math.random() < distL;
-        $scope.ins[1].active = Math.random() < distR;
+        $scope.ins[0].active = Math.random() < (distL/3);
+        $scope.ins[1].active = Math.random() < (distR/3);
         for (var m = 0; m < $scope.ins.length; m++) {
             var probArr = [];
             for (j = 0; j < $scope.ins[m].o.length; j++) {
