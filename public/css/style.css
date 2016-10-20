@@ -46,7 +46,7 @@ html,body{
 	transform-style: preserve-3d;
 }
 .an-out{
-	background:rgba(255,50,50,.6);
+	background:linear-gradient(to right,#f00,#100);
 }
 .outpt{
 	background:#500;

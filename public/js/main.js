@@ -137,7 +137,7 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
         this.out = conMode == 1;
         this.len = $scope.is3d ? $scope.getDist3d(s, t, conMode) : $scope.getDist(s, t, conMode);
         this.ang = $scope.getAng(s, t, conMode);
-        this.threeAng = $scope.getAng3d(s, t, conMode);
+        this.threeAng = $scope.is3d ? $scope.getAng3d(s, t, conMode) : { h: null, v: null };
     }
     $scope.drawBoard = function() {
         $scope.totalEn = 120000;
@@ -209,33 +209,47 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
     };
     $scope.okayRun = true;
     $scope.lastScore = 0;
+    $scope.tracePath = false;
     $scope.movePrey = function() {
+        if (!$scope.lockPrey) {
+            //first, random dir change chances
+            if (Math.random() > .98) {
+                $scope.prey.dx = (Math.random() * 10) - 5;
+            }
+            if (Math.random() > .98) {
+                $scope.prey.dy = (Math.random() * 10) - 5;
+            }
+            if ($scope.prey.dx < 0 && ($scope.prey.dx + $scope.prey.x) < 0) {
+                $scope.prey.dx = Math.random() * 5; //change horiz to positive
+            } else if ($scope.prey.dx > 0 && ($scope.prey.dx + $scope.prey.x) > $scope.playw) {
+                $scope.prey.dx = 0 - Math.random() * 5; //change horiz to negative;
+            }
 
-        //first, random dir change chances
-        if (Math.random() > .98) {
-            $scope.prey.dx = (Math.random() * 10) - 5;
+            if ($scope.prey.dy < 0 && ($scope.prey.dy + $scope.prey.y) < 0) {
+                $scope.prey.dy = Math.random() * 5; //change horiz to positive
+            } else if ($scope.prey.dy > 0 && ($scope.prey.dy + $scope.prey.y) > $scope.playh) {
+                $scope.prey.dy = 0 - Math.random() * 5; //change horiz to negative;
+            }
+            $scope.prey.x += $scope.prey.dx;
+            $scope.prey.y += $scope.prey.dy;
+            var theAng = Math.atan($scope.prey.dy / $scope.prey.dx) * 180 / Math.PI;
+            $scope.prey.facing = $scope.dx > 0 ? theAng + 90 : theAng - 90;
         }
-        if (Math.random() > .98) {
-            $scope.prey.dy = (Math.random() * 10) - 5;
-        }
-        if ($scope.prey.dx < 0 && ($scope.prey.dx + $scope.prey.x) < 0) {
-            $scope.prey.dx = Math.random() * 5; //change horiz to positive
-        } else if ($scope.prey.dx > 0 && ($scope.prey.dx + $scope.prey.x) > $scope.playw) {
-            $scope.prey.dx = 0 - Math.random() * 5; //change horiz to negative;
-        }
-
-        if ($scope.prey.dy < 0 && ($scope.prey.dy + $scope.prey.y) < 0) {
-            $scope.prey.dy = Math.random() * 5; //change horiz to positive
-        } else if ($scope.prey.dy > 0 && ($scope.prey.dy + $scope.prey.y) > $scope.playh) {
-            $scope.prey.dy = 0 - Math.random() * 5; //change horiz to negative;
-        }
-        $scope.prey.x += $scope.prey.dx;
-        $scope.prey.y += $scope.prey.dy;
-        var theAng = Math.atan($scope.prey.dy / $scope.prey.dx) * 180 / Math.PI;
-        $scope.prey.facing = $scope.dx > 0 ? theAng + 90 : theAng - 90;
     }
-    $scope.currPath = [];
+    $scope.currPath = [
+        [],
+        []
+    ];
+    $scope.activePath = [
+        [],
+        []
+    ];
     $scope.run = function() {
+        console.log('NUM PREV ACTIVE PATHS', $scope.activePath.length)
+        $scope.activePath = [
+            [],
+            []
+        ];
         var newActive = [];
         for (var i = 0; i < $scope.activeNeurs.length; i++) {
             var probArr = [];
@@ -265,7 +279,8 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
                     }
                     $scope.neurons[$scope.neurons[$scope.activeNeurs[i]].o[firstOut].target].active = true;
                 }
-                $scope.currPath.push([$scope.activeNeurs[i], $scope.neurons[$scope.activeNeurs[i]].o[firstOut]]);
+                $scope.currPath[0].push([$scope.activeNeurs[i], $scope.neurons[$scope.activeNeurs[i]].o[firstOut]]);
+                $scope.activePath[0].push([$scope.activeNeurs[i], $scope.neurons[$scope.activeNeurs[i]].o[firstOut]]);
                 if ($scope.neurons[$scope.activeNeurs[i]].doesSplit && maxRolls) {
                     //split, so do 2nd path
                     if ($scope.neurons[$scope.activeNeurs[i]].o[secondOut].out) {
@@ -277,7 +292,8 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
                         }
                         $scope.neurons[$scope.neurons[$scope.activeNeurs[i]].o[secondOut].target].active = true;
                     }
-                    $scope.currPath.push([$scope.activeNeurs[i], $scope.neurons[$scope.activeNeurs[i]].o[secondOut]]);
+                    $scope.currPath[0].push([$scope.activeNeurs[i], $scope.neurons[$scope.activeNeurs[i]].o[secondOut]]);
+                    $scope.activePath[0].push([$scope.activeNeurs[i], $scope.neurons[$scope.activeNeurs[i]].o[secondOut]]);
                 }
             }
         }
@@ -300,12 +316,14 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
                 }
             }
             //now got a probability arr
-            var firstOut = probArr[Math.floor(Math.random() * probArr.length)];
+            firstOut = probArr[Math.floor(Math.random() * probArr.length)];
             if (Math.random() > .02 && $scope.ins[m].active) {
                 if (newActive.indexOf($scope.ins[m].o[firstOut].target) == -1) {
                     newActive.push($scope.ins[m].o[firstOut].target);
                 }
                 $scope.neurons[$scope.ins[m].o[firstOut].target].active = true;
+                $scope.currPath[1].push([m, $scope.ins[m].o[firstOut]])
+                $scope.activePath[1].push([m, $scope.ins[m].o[firstOut]])
             }
         }
         //calc energy/heat usage.
@@ -349,18 +367,34 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
         }
     }
     $scope.changePaths = function(isGood) {
-        for (var i = 0; i < $scope.currPath.length; i++) {
-            if ($scope.neurons[$scope.currPath[i][0]] && $scope.neurons[$scope.currPath[i][0]].o[$scope.currPath[i][1]]) {
-                $scope.neurons[$scope.currPath[i][0]].o[$scope.currPath[i][1]].weight += isGood ? .02 : -.02;
-                if ($scope.neurons[$scope.currPath[i][0]].o[$scope.currPath[i][1]].weight <= 0.02) {
-                    $scope.neurons[$scope.currPath[i][0]].o[$scope.currPath[i][1]].weight = 0.02;
-                } else if ($scope.neurons[$scope.currPath[i][0]].o[$scope.currPath[i][1]].weight > .98) {
-                    $scope.neurons[$scope.currPath[i][0]].o[$scope.currPath[i][1]].weight = 0.98;
+        //neurons
+
+        for (var i = 0; i < $scope.currPath[0].length; i++) {
+            if ($scope.neurons[$scope.currPath[0][i][0]] && $scope.neurons[$scope.currPath[0][i][0]].o[$scope.currPath[0][i][1]]) {
+                $scope.neurons[$scope.currPath[0][i][0]].o[$scope.currPath[0][i][1]].weight += isGood ? .02 : -.02;
+                //cap values
+                if ($scope.neurons[$scope.currPath[0][i][0]].o[$scope.currPath[0][i][1]].weight < 0.02) {
+                    $scope.neurons[$scope.currPath[0][i][0]].o[$scope.currPath[0][i][1]].weight = 0.02;
+                } else if ($scope.neurons[$scope.currPath[0][i][0]].o[$scope.currPath[0][i][1]].weight > 0.98) {
+                    $scope.neurons[$scope.currPath[0][i][0]].o[$scope.currPath[0][i][1]].weight = 0.98;
+                }
+            }
+        }
+        for (i = 0; i < $scope.currPath[1].length; i++) {
+            if ($scope.ins[$scope.currPath[1][i][0]] && $scope.ins[$scope.currPath[1][i][0]].o[$scope.currPath[1][i][1]]) {
+                $scope.ins[$scope.currPath[1][i][0]].o[$scope.currPath[1][i][1]].weight += isGood ? .02 : -.02;
+                if ($scope.ins[$scope.currPath[1][i][0]].o[$scope.currPath[1][i][1]].weight < 0.02) {
+                    $scope.ins[$scope.currPath[1][i][0]].o[$scope.currPath[1][i][1]].weight = 0.02;
+                } else if ($scope.ins[$scope.currPath[1][i][0]].o[$scope.currPath[1][i][1]].weight > 0.98) {
+                    $scope.ins[$scope.currPath[1][i][0]].o[$scope.currPath[1][i][1]].weight = 0.98
                 }
             }
         }
         //finally, reset the things.
-        $scope.currPath = [];
+        $scope.currPath = [
+            [],
+            []
+        ];
     }
     $scope.die = function(l, r, isGood) {
         //calc score
@@ -395,6 +429,31 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
         if (!$scope.hasStarted) {
             $scope.hasStarted = true;
             $scope.run();
+        }
+    }
+    $scope.grafWarn = function(n) {
+        n=parseInt(n);
+        if (((!n||n==0) && !$scope.is3d && $scope.tracePath) ||(n==1 && $scope.is3d && !$scope.tracePath)) {
+            if((!n||n==0)){
+                $scope.tracePath=false;
+            }else{
+                $scope.is3d=false;
+            }//set these both to false, so user has time to think about wat they've done >:(
+            bootbox.confirm({
+                title: 'Performance Warning',
+                message: '3d mode and Path Tracing both use some fairly complex calculations. They can severely slow down or crash your browser. Are you sure you want to activate one of these advanced modes?',
+                callback: function(r) {
+                    console.log('warn response is',r)
+                    if(r && r!=null){
+                        if(!n||n==0){
+                            $scope.tracePath=true;
+                        }else{
+                            $scope.is3d=true;
+                        }
+                    }
+                    $scope.$apply();
+                }
+            })
         }
     }
     $scope.resetBrain = function() {
