@@ -31,7 +31,7 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
     $scope.is3d = false;
     bootbox.dialog({
         title: 'Neuron Simulation Startup Options',
-        message: '<div class="form-group col-md-12"><div class="col-md-5">Number of neurons</div><div class="col-md-6"><input type="number" id="num-in" value="99" /></div></div><br/><br/><div class="form-group col-md-12"><div class="col-md-5">Connections Per Neuron (percent of total)</div><div class="col-md-6"><div class="col-md-1">0%</div><div class="col-md-8"><input type="range" min="1" value ="20" max="50" id="numConnects"/></div><div class="col-md-1">50%</div></div></div><br/><br/><div class="form-group col-md-12"><div class="col-md-5">Enable 3d Brain</div><div class="col-md-6"><input type="checkbox" onchange="angular.element(\'body\').scope().toggle3d();" /></div></div><br/><br/><div class="alert-danger" id="warn3d" style="display:none"><h4>Warning:</h4>3d brain rendering is a LOT more processor intensive!</div>',
+        message: '<div class="form-group col-md-12"><div class="col-md-5">Number of neurons</div><div class="col-md-6"><input type="number" id="num-in" value="99" /></div></div><br/><br/><div class="form-group col-md-12"><div class="col-md-5">Connections Per Neuron (percent of total)</div><div class="col-md-6"><div class="col-md-1">0%</div><div class="col-md-8"><input type="range" min="1" value ="20" max="50" id="numConnects"/></div><div class="col-md-1">50%</div></div></div><br/><br/><div class="form-group col-md-12"><div class="col-md-5">Hide connections </div><div class="col-md-6"><input type="checkbox" id="con-status"/></div></div><br/><br/><div class="form-group col-md-12"><div class="col-md-5">Enable 3d Brain</div><div class="col-md-6"><input type="checkbox" onchange="angular.element(\'body\').scope().toggle3d();" /></div></div><br/><br/><div class="alert-danger" id="warn3d" style="display:none"><h4>Warning:</h4>3d brain rendering is a LOT more processor intensive!</div>',
         buttons: {
             confirm: {
                 label: 'Create',
@@ -45,7 +45,8 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
                     } else {
                         $scope.numNeurs = parseInt($('#num-in').val());
                         $scope.numBaseCons = $scope.numNeurs * parseInt($('#numConnects').val()) / 100;
-                        console.log('Neurons:', $scope.numNeurs, 'Connects per neuron', $scope.numBaseCons)
+                        $scope.hideCons=$('#con-status').val();
+                        $scope.$apply();
                         $scope.drawBoard();
                         return true;
                     }
@@ -309,7 +310,7 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
 
         $scope.ins[0].active = (Math.random() < (distL / 3));
         $scope.ins[1].active = (Math.random() < (distR / 3));
-
+        $scope.hideCons;
         for (var m = 0; m < $scope.ins.length; m++) {
             var probArr = [];
             for (j = 0; j < $scope.ins[m].o.length; j++) {
