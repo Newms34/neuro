@@ -22,11 +22,15 @@
     <button ng-click='showCons = !showCons' class='btn btn-success pull-right'>&#9881;</button>
     <div class='container panel panel-success panel-body' id='controls' ng-show='showCons'>
         <div class='row'>
-            <div class='col-md-3'>Highest Score</div>
-            <div class='col-md-3'>
-                {{lastScore}}
+            <div class='col-md-3'>Recent Average Score</div>
+            <div class='col-md-3' ng-show='scoreAvg!=null'>
+                {{scoreAvg}}
             </div>
-            <div class='col-md-3'>{{lastDeath}}</div>
+            <div class='col-md-3' ng-show='scoreAvg==null'>
+                Pending: {{5-recentScores.length}} runs remaining before dynamic adjustment.
+            </div>
+            <div class='col-md-3'>Cause of last reset:</div>
+            <div class='col-md-3'>{{lastDeath!='Successful hunt' && lastDeath!=null?'Death from ':''}}{{lastDeath}}</div>
         </div>
         <h3>Options:</h3>
         <div class='row'>

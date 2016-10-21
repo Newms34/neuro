@@ -11,6 +11,10 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
     $scope.numBaseCons = 5;
     $scope.numOuts = 7;
     $scope.lastDeath = null;
+    $scope.okayRun = true;
+    $scope.recentScores = [];
+    $scope.scoreAvg=null;
+    $scope.tracePath = false;
     $scope.speed = 150;
     $scope.speedRaw = 86;
     $scope.prey = {
@@ -40,8 +44,8 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
                         bootbox.alert('Number of neurons too low!')
                     } else {
                         $scope.numNeurs = parseInt($('#num-in').val());
-                        $scope.numBaseCons = $scope.numNeurs*parseInt($('#numConnects').val())/100;
-                        console.log('Neurons:',$scope.numNeurs,'Connects per neuron',$scope.numBaseCons)
+                        $scope.numBaseCons = $scope.numNeurs * parseInt($('#numConnects').val()) / 100;
+                        console.log('Neurons:', $scope.numNeurs, 'Connects per neuron', $scope.numBaseCons)
                         $scope.drawBoard();
                         return true;
                     }
@@ -208,9 +212,7 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
         }
         $scope.$apply();
     };
-    $scope.okayRun = true;
-    $scope.lastScore = 0;
-    $scope.tracePath = false;
+    
     $scope.movePrey = function() {
         if (!$scope.lockPrey) {
             //first, random dir change chances
@@ -246,7 +248,6 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
         []
     ];
     $scope.run = function() {
-        console.log('NUM PREV ACTIVE PATHS', $scope.activePath.length)
         $scope.activePath = [
             [],
             []
@@ -306,9 +307,9 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
             distL = ($scope.playw - Math.sqrt(Math.pow((leftEye.left - targPos.left), 2) + Math.pow((leftEye.top - targPos.top), 2))) / $scope.playw,
             distR = ($scope.playw - Math.sqrt(Math.pow((rightEye.left - targPos.left), 2) + Math.pow((rightEye.top - targPos.top), 2))) / $scope.playw;
 
-        $scope.ins[0].active = (Math.random() < (distL/3));
-        $scope.ins[1].active = (Math.random() < (distR/3));
-        
+        $scope.ins[0].active = (Math.random() < (distL / 3));
+        $scope.ins[1].active = (Math.random() < (distR / 3));
+
         for (var m = 0; m < $scope.ins.length; m++) {
             var probArr = [];
             for (j = 0; j < $scope.ins[m].o.length; j++) {
@@ -408,11 +409,16 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
             score += 60 * ($scope.playw - Math.abs($scope.prey.x - $scope.org.x)) / $scope.playw;
         }
         //find out what to do with score;
-        if (score > $scope.lastScore) {
-            $scope.lastScore = score;
-            $scope.changePaths(true);
-        } else {
-            $scope.changePaths(false);
+        $scope.recentScores.push(score);
+        if ($scope.recentScores.length > 6) {
+            $scope.recentScores.shift();
+        }
+        if ($scope.recentScores.length >= 6) {
+            //calc score
+            $scope.scoreAvg = $scope.recentScores.reduce(function(p, c, i) {
+                return p + (i != $scope.recentScores.length - 1 ? c : 0);
+            })/$scope.recentScores.length;
+            $scope.changePaths(score>$scope.scoreAvg);
         }
         //clear vars
         $scope.running = false;
@@ -434,23 +440,23 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
         }
     }
     $scope.grafWarn = function(n) {
-        n=parseInt(n);
-        if (((!n||n==0) && !$scope.is3d && $scope.tracePath) ||(n==1 && $scope.is3d && !$scope.tracePath)) {
-            if((!n||n==0)){
-                $scope.tracePath=false;
-            }else{
-                $scope.is3d=false;
-            }//set these both to false, so user has time to think about wat they've done >:(
+        n = parseInt(n);
+        if (((!n || n == 0) && !$scope.is3d && $scope.tracePath) || (n == 1 && $scope.is3d && !$scope.tracePath)) {
+            if ((!n || n == 0)) {
+                $scope.tracePath = false;
+            } else {
+                $scope.is3d = false;
+            } //set these both to false, so user has time to think about wat they've done >:(
             bootbox.confirm({
                 title: 'Performance Warning',
                 message: '3d mode and Path Tracing both use some fairly complex calculations. They can severely slow down or crash your browser. Are you sure you want to activate one of these advanced modes?',
                 callback: function(r) {
-                    console.log('warn response is',r)
-                    if(r && r!=null){
-                        if(!n||n==0){
-                            $scope.tracePath=true;
-                        }else{
-                            $scope.is3d=true;
+                    console.log('warn response is', r)
+                    if (r && r != null) {
+                        if (!n || n == 0) {
+                            $scope.tracePath = true;
+                        } else {
+                            $scope.is3d = true;
                         }
                     }
                     $scope.$apply();

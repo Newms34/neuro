@@ -102,7 +102,7 @@ html,body{
 	border-radius: 50%;
 	height:30px;
 	width:30px;
-	background:#900;
+	box-shadow:0 0 15px #900 inset ;
 	color:#fff;
 	font-size: x-large;
 }
@@ -112,7 +112,7 @@ html,body{
 	left:0.5%;
 	width:99%;
 	position:absolute;
-	background:#090;
+	background:url('.././img/bg.jpg');
 	z-index:-1;
 }
 #controls{
@@ -126,7 +126,7 @@ html,body{
 	border-radius: 50%;
 	height:30px;
 	width:30px;
-	background:#009;
+	box-shadow:0 0 15px #009 inset;
 	color:#fff;
 }
 .sensor{
