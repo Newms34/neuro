@@ -21,7 +21,7 @@ This is a simple neuron simulation app, written to explore emergent phenomena fr
  5. Click the &#9881;, and adjust controls as desired.
   - If you want the simulation to auto-repeat (generally a good idea if you want it to actually learn anything!), check the 'Auto-repeat' box.
   - Adjust the speed as desired. Faster speeds mean the simulation will, obviously, happen faster. Lower speeds are better if you actually want to see the path that the neurons take. Be aware that, especially on lower-end machines, too fast a speed may cause issues, as the simulation may not be able to calculate the current 'tick' before the next tick is called.
- 6. Click 'Go'! Your organism (blue) will attempt to learn how to 'catch' the red prey item!
+ 6. Click 'Go'! Your organism (blue) will attempt to learn how to 'catch' the red prey item (&#127807; or &#128048;)!
 
 ##How It Works
 ###Sensing:

@@ -1,5 +1,7 @@
 var app = angular.module('neur-app', []).controller('neur-con', function($scope, $http) {
     // simple sim: https://jsfiddle.net/zg5vknbr/8/
+
+    //TO DO: add more than one 'range' to each eye dist sensor, so we can get more of a gradient than simple on/off. Custom num?
     $scope.h = $('#brain').height();
     $scope.w = $('#brain').width();
     $scope.playw = $('#playfield').width() - 50;
@@ -12,11 +14,13 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
     $scope.numOuts = 7;
     $scope.lastDeath = null;
     $scope.okayRun = true;
-    $scope.recentScores = [];
-    $scope.scoreAvg=null;
+    $scope.scores = [];
+    $scope.scoreAvg = null;
     $scope.tracePath = false;
     $scope.speed = 150;
     $scope.speedRaw = 86;
+    $scope.numGenerations = 0;
+    $scope.hideCons = false;
     $scope.prey = {
         x: $scope.w * .5,
         y: $scope.h * .5,
@@ -28,16 +32,40 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
         x: 0,
         y: 0
     }
-    $scope.is3d = false;
     bootbox.dialog({
         title: 'Neuron Simulation Startup Options',
-        message: '<div class="form-group col-md-12"><div class="col-md-5">Number of neurons</div><div class="col-md-6"><input type="number" id="num-in" value="99" /></div></div><br/><br/><div class="form-group col-md-12"><div class="col-md-5">Connections Per Neuron (percent of total)</div><div class="col-md-6"><div class="col-md-1">0%</div><div class="col-md-8"><input type="range" min="1" value ="20" max="50" id="numConnects"/></div><div class="col-md-1">50%</div></div></div><br/><br/><div class="form-group col-md-12"><div class="col-md-5">Hide connections </div><div class="col-md-6"><input type="checkbox" id="con-status"/></div></div><br/><br/><div class="form-group col-md-12"><div class="col-md-5">Enable 3d Brain</div><div class="col-md-6"><input type="checkbox" onchange="angular.element(\'body\').scope().toggle3d();" /></div></div><br/><br/><div class="alert-danger" id="warn3d" style="display:none"><h4>Warning:</h4>3d brain rendering is a LOT more processor intensive!</div>',
+        message: `<div class="form-group col-md-12">
+    <div class="col-md-5">Number of neurons</div>
+    <div class="col-md-6">
+        <input type="number" id="num-in" value="200" />
+    </div>
+</div>
+<br/>
+<br/>
+<div class="form-group col-md-12">
+    <div class="col-md-5">Connections Per Neuron (percent of total)</div>
+    <div class="col-md-6">
+        <div class="col-md-1">0%</div>
+        <div class="col-md-8">
+            <input type="range" min="1" value="20" max="50" id="numConnects" />
+        </div>
+        <div class="col-md-1">50%</div>
+    </div>
+</div>
+<br/>
+<br/>
+<div class="form-group col-md-12">
+    <div class="col-md-5">Hide connections </div>
+    <div class="col-md-6">
+        <input type="checkbox" id="con-status" />
+    </div>
+</div>
+`,
         buttons: {
             confirm: {
                 label: 'Create',
                 className: 'btn-success',
                 callback: function() {
-                    console.log('RESULT:', $('#num-in').val(), $scope.is3d)
                     if (isNaN(parseInt($('#num-in').val()))) {
                         bootbox.alert('Please enter a number of neurons');
                     } else if (parseInt($('#num-in').val()) < 5) {
@@ -45,9 +73,9 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
                     } else {
                         $scope.numNeurs = parseInt($('#num-in').val());
                         $scope.numBaseCons = $scope.numNeurs * parseInt($('#numConnects').val()) / 100;
-                        $scope.hideCons=$('#con-status').val();
+                        $scope.hideCons = $('#con-status').val();
                         $scope.$apply();
-                        $scope.drawBoard();
+                        $scope.drawInitBoard();
                         return true;
                     }
                     return false;
@@ -58,60 +86,9 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
 
     $scope.activeNeurs = [];
     $scope.changeSpeed = function() {
-        $scope.speed = (-10 * $scope.speedRaw) + 1010;
-    }
-    $scope.toggle3d = function() {
-        $scope.is3d = !$scope.is3d;
-        $scope.$apply();
-        if ($scope.is3d) {
-            $('#warn3d').show(100);
-        } else {
-            $('#warn3d').hide(100);;
+            $scope.speed = (-10 * $scope.speedRaw) + 1010;
         }
-    }
-    $scope.mouseAng = 0;
-    window.onmousemove = function(e) {
-        if ($scope.rotOn) {
-            $scope.mouseAng = e.x || e.clientX;
-            $scope.$apply();
-        }
-    }
-    window.onkeyup = function(e) {
-        if (e.which == 32) {
-            e.preventDefault();
-            $scope.rotOn = !$scope.rotOn;
-        }
-    }
-    $scope.getDist = function(a, b, conMode) {
-        var firstItem = conMode == 2 ? $scope.ins[a] : $scope.neurons[a];
-        var secondItem = conMode == 1 ? $scope.outs[b] : $scope.neurons[b];
-        //a & b are indices of the source and target, respectively
-        return Math.sqrt(Math.pow((secondItem.x - firstItem.x), 2) + Math.pow((secondItem.y - firstItem.y), 2));
-    }
-    $scope.getAng = function(a, b, conMode) {
-        var firstItem = conMode == 2 ? $scope.ins[a] : $scope.neurons[a];
-        var secondItem = conMode == 1 ? $scope.outs[b] : $scope.neurons[b];
-        var theAng = Math.atan((secondItem.y - firstItem.y) / (secondItem.x - firstItem.x)) * 180 / Math.PI;
-        return secondItem.x >= firstItem.x ? theAng : theAng - 180;
-    }
-    $scope.getDist3d = function(a, b, conMode) {
-        var firstItem = conMode == 2 ? $scope.ins[a] : $scope.neurons[a];
-        var secondItem = conMode == 1 ? $scope.outs[b] : $scope.neurons[b];
-        return Math.sqrt(Math.pow((secondItem.x - firstItem.x), 2) + Math.pow((secondItem.y - firstItem.y), 2) + Math.pow((secondItem.z - firstItem.z), 2));
-    }
-    $scope.getAng3d = function(a, b, conMode) {
-        var firstItem = conMode == 2 ? $scope.ins[a] : $scope.neurons[a];
-        var secondItem = conMode == 1 ? $scope.outs[b] : $scope.neurons[b];
-        var theAngs = {
-            v: Math.atan((secondItem.y - firstItem.y) / (Math.sqrt(Math.pow((secondItem.x - firstItem.x), 2) + Math.pow((secondItem.z - firstItem.z), 2)))) * 180 / Math.PI,
-            h: Math.atan((secondItem.z - firstItem.z) / (secondItem.x - firstItem.x)) * 180 / Math.PI
-        }
-        if (secondItem.x < firstItem.x) {
-            theAngs.h = theAngs.h - 180;
-        }
-        console.log('ANGLES from', a, 'to', b, 'are', theAngs)
-        return theAngs;
-    }
+        //construction
     $scope.outConst = function(action, does) {
         this.x = $scope.w;
         this.y = $scope.h * $scope.outs.length / $scope.numOuts;
@@ -143,34 +120,26 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
         this.weight = w;
         this.active = true;
         this.out = conMode == 1;
-        this.len = $scope.is3d ? $scope.getDist3d(s, t, conMode) : $scope.getDist(s, t, conMode);
-        this.ang = $scope.getAng(s, t, conMode);
-        this.threeAng = $scope.is3d ? $scope.getAng3d(s, t, conMode) : { h: null, v: null };
     }
-    $scope.drawBoard = function() {
+    $scope.drawInitBoard = function() {
         $scope.totalEn = 120000;
         $scope.remainingEn = $scope.totalEn;
         $scope.enPerNeur = $scope.totalEn / ($scope.speed * $scope.numNeurs);
         for (var i = 0; i < $scope.numNeurs; i++) {
             $scope.neurons.push(new $scope.neurConst())
         }
-        $scope.$apply();
         $scope.outs.push(new $scope.outConst('Move right', function() {
             if ($scope.org.x < $scope.playw - 3) $scope.org.x += 3;
-        }))
-        $scope.$apply();
+        }));
         $scope.outs.push(new $scope.outConst('Move left', function() {
             if ($scope.org.x > 3) $scope.org.x -= 3;
-        }))
-        $scope.$apply();
+        }));
         $scope.outs.push(new $scope.outConst('Move down', function() {
             if ($scope.org.y < $scope.playh - 3) $scope.org.y += 3;
-        }))
-        $scope.$apply();
+        }));
         $scope.outs.push(new $scope.outConst('Move up', function() {
             if ($scope.org.y > 3) $scope.org.y -= 3;
-        }))
-        $scope.$apply();
+        }));
         // left eye
         $scope.ins.push(new $scope.inConst());
         var numCons = Math.ceil(Math.random() * .1 * $scope.numNeurs);
@@ -181,7 +150,6 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
             $scope.neurons[whichTarg].i.push('inLeft');
             $scope.ins[0].o.push(new $scope.connection(0, whichTarg, wt, 2));
         }
-        $scope.$apply();
         // right eye
         $scope.ins.push(new $scope.inConst());
         for (var j = 0; j < numCons; j++) {
@@ -191,7 +159,6 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
             $scope.neurons[whichTarg].i.push('inRight');
             $scope.ins[1].o.push(new $scope.connection(1, whichTarg, wt, 2));
         }
-        $scope.$apply();
         for (i = 0; i < $scope.numNeurs; i++) {
             for (var j = 0; j < $scope.numBaseCons; j++) {
                 var whichTarg = false;
@@ -202,7 +169,6 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
                         // keep rolling if the picked target is either this neuron, or is an incoming connection
                         whichTarg = Math.floor(Math.random() * $scope.numNeurs);
                     }
-
                     $scope.neurons[whichTarg].i.push(i);
                     $scope.neurons[i].o.push(new $scope.connection(i, whichTarg, wt, 0));
                 } else {
@@ -212,8 +178,73 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
             }
         }
         $scope.$apply();
+        $scope.drawBoard();
     };
-    
+    $scope.scoreGraff = {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Score',
+                data: []
+            }]
+        }
+    };
+
+    $scope.ctx = document.querySelector('#brain-canv').getContext("2d");
+    $scope.cw = $('#brain').width();
+    $scope.ch = $('#brain').height();
+    var grd = $scope.ctx.createLinearGradient(0, 0, 100, 0);
+    grd.addColorStop(0, 'rgba(250,0,0,.5)');
+    grd.addColorStop(1, 'rgba(0,250,0,.5)');
+    $scope.drawBoard = function() {
+        $scope.ctx.fillStyle = '#000'
+        $scope.ctx.fillRect(0, 0, $scope.cw, $scope.ch); //blank the canvas for redraw
+        $scope.ctx.strokeStyle = '#005';
+        $scope.ctx.lineWidth = 1;
+        if (!$scope.hideCons) {
+            $scope.ins.forEach((ins) => {
+                ins.o.forEach((ino) => {
+                    if (ins.active) {
+                        $scope.ctx.strokeStyle = '#00d';
+                        $scope.ctx.lineWidth = 2;
+                    } else {
+                        $scope.ctx.strokeStyle = '#005';
+                        $scope.ctx.lineWidth = .1;
+                    }
+                    $scope.ctx.beginPath();
+                    $scope.ctx.moveTo(0, ins.y);
+                    $scope.ctx.lineTo($scope.neurons[ino.target].x, $scope.neurons[ino.target].y);
+                    $scope.ctx.stroke();
+                    $scope.ctx.closePath();
+                })
+            });
+        }
+        $scope.neurons.forEach((neur) => {
+            //first, draw the actual neuron
+            $scope.ctx.fillStyle = neur.active ? '#ccf' : '#555';
+            $scope.ctx.fillRect(neur.x - 3, neur.y - 3, 6, 6);
+            //and its connekshunz
+            if (!$scope.hideCons) {
+                neur.o.forEach((neurOut) => {
+                    if (neur.active) {
+                        $scope.ctx.strokeStyle = grd;
+                        $scope.ctx.lineWidth = 5 * neurOut.weight;
+                    } else {
+                        $scope.ctx.strokeStyle = 'rgba(0,0,150,.5)';
+                        $scope.ctx.lineWidth = .1;
+                    }
+                    if (!$scope.hideCons && (neur.active || !$scope.hideInactCon)) {
+                        $scope.ctx.beginPath();
+                        $scope.ctx.moveTo(neur.x, neur.y);
+                        $scope.ctx.lineTo($scope.neurons[neurOut.target].x, $scope.neurons[neurOut.target].y);
+                        $scope.ctx.stroke();
+                        $scope.ctx.closePath();
+                    }
+                })
+            }
+        });
+    }
     $scope.movePrey = function() {
         if (!$scope.lockPrey) {
             //first, random dir change chances
@@ -310,7 +341,6 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
 
         $scope.ins[0].active = (Math.random() < (distL / 3));
         $scope.ins[1].active = (Math.random() < (distR / 3));
-        $scope.hideCons;
         for (var m = 0; m < $scope.ins.length; m++) {
             var probArr = [];
             for (j = 0; j < $scope.ins[m].o.length; j++) {
@@ -366,6 +396,7 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
                 $scope.activeNeurs = [];
                 $scope.activeNeurs = newActive;
                 $scope.$apply();
+                $scope.drawBoard();
                 $scope.run();
             }, $scope.speed)
         }
@@ -410,16 +441,20 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
             score += 60 * ($scope.playw - Math.abs($scope.prey.x - $scope.org.x)) / $scope.playw;
         }
         //find out what to do with score;
-        $scope.recentScores.push(score);
-        if ($scope.recentScores.length > 6) {
-            $scope.recentScores.shift();
-        }
-        if ($scope.recentScores.length >= 6) {
+        $scope.scores.push(score);
+        $scope.scoreGraff.data.datasets[0].data.push(score);
+        $scope.scoreGraff.data.labels.push($scope.scores.length);
+        if ($scope.scores.length >= 6) {
             //calc score
-            $scope.scoreAvg = $scope.recentScores.reduce(function(p, c, i) {
-                return p + (i != $scope.recentScores.length - 1 ? c : 0);
-            })/$scope.recentScores.length;
-            $scope.changePaths(score>$scope.scoreAvg);
+            $scope.scoreAvg = $scope.scores.slice(-6).reduce(function(p, c) {
+                return p + c;
+            }) / 6;
+            $scope.changePaths(score > $scope.scoreAvg);
+        }
+        if ($scope.scores.length == 3) {
+            $scope.scChart = new Chart(document.querySelector('#score-canv'), $scope.scoreGraff);
+        } else if ($scope.scores.length > 3) {
+            $scope.scChart.update();
         }
         //clear vars
         $scope.running = false;
@@ -433,36 +468,12 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
 
     $scope.startSim = function() {
         $scope.neurons[0].active = true;
+        $scope.numGenerations++;
         $scope.totalEn = 120000;
         $scope.remainingEn = $scope.totalEn;
         if (!$scope.hasStarted) {
             $scope.hasStarted = true;
             $scope.run();
-        }
-    }
-    $scope.grafWarn = function(n) {
-        n = parseInt(n);
-        if (((!n || n == 0) && !$scope.is3d && $scope.tracePath) || (n == 1 && $scope.is3d && !$scope.tracePath)) {
-            if ((!n || n == 0)) {
-                $scope.tracePath = false;
-            } else {
-                $scope.is3d = false;
-            } //set these both to false, so user has time to think about wat they've done >:(
-            bootbox.confirm({
-                title: 'Performance Warning',
-                message: '3d mode and Path Tracing both use some fairly complex calculations. They can severely slow down or crash your browser. Are you sure you want to activate one of these advanced modes?',
-                callback: function(r) {
-                    console.log('warn response is', r)
-                    if (r && r != null) {
-                        if (!n || n == 0) {
-                            $scope.tracePath = true;
-                        } else {
-                            $scope.is3d = true;
-                        }
-                    }
-                    $scope.$apply();
-                }
-            })
         }
     }
     $scope.resetBrain = function() {

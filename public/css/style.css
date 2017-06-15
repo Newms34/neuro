@@ -8,12 +8,11 @@ html,body{
 	width:99%;
 	background:#000;
 	color:#fff;
-	transform-style: preserve-3d;
+	padding:0;
 }
 #brain-3d-cont{
 	width:100%;
 	height:100%;
-	transform-style: preserve-3d;
 }
 .neuron{
 	background:rgba(128,128,255,.7);
@@ -50,7 +49,7 @@ html,body{
 }
 .outpt{
 	background:#500;
-	width:20px;
+	width:80px;
 	position: absolute;
 	height:20px;
 	transition-duration: .5s;
@@ -63,7 +62,6 @@ html,body{
 
 .inpt{
 	background:#050;
-
 	position: absolute;
 	height:20px;
 	transition-duration: .5s;
