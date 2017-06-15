@@ -73,7 +73,7 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
                     } else {
                         $scope.numNeurs = parseInt($('#num-in').val());
                         $scope.numBaseCons = $scope.numNeurs * parseInt($('#numConnects').val()) / 100;
-                        $scope.hideCons = $('#con-status').val();
+                        $scope.hideCons = $('#con-status').checked;
                         $scope.$apply();
                         $scope.drawInitBoard();
                         return true;
