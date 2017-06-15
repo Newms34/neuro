@@ -444,11 +444,11 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
         $scope.scores.push(score);
         $scope.scoreGraff.data.datasets[0].data.push(score);
         $scope.scoreGraff.data.labels.push($scope.scores.length);
-        if ($scope.scores.length >= 6) {
+        if ($scope.scores.length >= 3) {
             //calc score
-            $scope.scoreAvg = $scope.scores.slice(-6).reduce(function(p, c) {
+            $scope.scoreAvg = $scope.scores.slice(-3).reduce(function(p, c) {
                 return p + c;
-            }) / 6;
+            }) / 3;
             $scope.changePaths(score > $scope.scoreAvg);
         }
         if ($scope.scores.length == 3) {
