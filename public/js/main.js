@@ -456,6 +456,10 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
         } else if ($scope.scores.length > 3) {
             $scope.scChart.update();
         }
+        if ($scope.scoreGraff.data.labels.length>50){
+            $scope.scoreGraff.data.datasets[0].data.shift();
+            $scope.scoreGraff.data.labels.shift();
+        }
         //clear vars
         $scope.running = false;
         $scope.hasStarted = false;
