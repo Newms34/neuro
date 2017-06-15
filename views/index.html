@@ -2,9 +2,9 @@
 <html>
 
 <head>
-    <title>Neuron Simulation</title>
+    <title>Dave's Brain Sim</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-    <link rel="stylesheet" type="text/css" href="/css/style.css">
+    <link rel="stylesheet" type="text/css" href="/css/styles.css">
 </head>
 
 <body ng-app='neur-app' ng-controller='neur-con' ng-cloak>
@@ -100,8 +100,8 @@
     </div>
     <div class='container' id='playfield'>
         <div id='org' style='left:{{org.x}}px;top:{{org.y}}px;'>
-            <div class='sensor' id='sensL'></div>
-            <div class='sensor' id='sensR'></div>
+            <div class='sensor' id='sensL' ng-class="{'big-eye':(!ins[0].active && ins[2].active),'small-eye':(ins[0].active && !ins[2].active),'both-eye':(ins[0].active && ins[2].active)}"></div>
+            <div class='sensor' id='sensR' ng-class="{'big-eye':(!ins[1].active && ins[3].active),'small-eye':(ins[1].active && !ins[3].active),'both-eye':(ins[1].active && ins[3].active)}"></div>
         </div>
         <div id='prey' style='left:{{prey.x}}px;top:{{prey.y}}px;transform:rotateZ({{prey.facing}}deg);'>{{lockPrey?'&#127807;':'&#128048;'}}</div>
     </div>
