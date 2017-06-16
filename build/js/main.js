@@ -15,6 +15,7 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
     $scope.lastDeath = null;
     $scope.okayRun = true;
     $scope.scores = [];
+    $scope.scoreAvgs = [];
     $scope.scoreAvg = null;
     $scope.tracePath = false;
     $scope.speed = 150;
@@ -81,18 +82,18 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
                     return false;
                 }
             },
-            help:{
-                label:'?',
+            help: {
+                label: '?',
                 className: 'btn-danger',
-                callback:function(){
+                callback: function() {
                     $scope.showHalp();
                     return false;
                 }
             }
         }
     })
-    $scope.showHalp = function(){
-        bootbox.alert({title:`<h3>Dave's Brain Sim v1.2.1</h3>`,message:`
+    $scope.showHalp = function() {
+        bootbox.alert({ title: `<h3>Dave's Brain Sim v1.2.1</h3>`, message: `
 <h4>About</h4> Dave's Brain Sim is a relatively simple brain simulation, using randomly generated 'pure' neural networks.
 <hr>
 <h4>Goal</h4> The overall goal of the simulation is for the prey item (in blue) to catch the prey item (red or green).
@@ -168,7 +169,7 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
     </li>
 </ul>
 
-`,size:'large'})
+`, size: 'large' })
     }
     $scope.activeNeurs = [];
     $scope.changeSpeed = function() {
@@ -231,7 +232,7 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
         }));
 
         //now, the four inputs (2 per eye: one large, one small)
-        var numCons = Math.ceil(Math.random() * .1 * $scope.numNeurs);//number of connections per eye sensor
+        var numCons = Math.ceil(Math.random() * .1 * $scope.numNeurs); //number of connections per eye sensor
         // left eye, small
         $scope.ins.push(new $scope.inConst());
         for (var j = 0; j < numCons; j++) {
@@ -297,7 +298,14 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
             labels: [],
             datasets: [{
                 label: 'Score',
-                data: []
+                data: [],
+                borderColor: '#009',
+                fill:false
+            }, {
+                label: 'Score Average',
+                data: [],
+                borderColor: '#090',
+                fill:false
             }]
         }
     };
@@ -452,8 +460,8 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
 
         $scope.ins[0].active = (Math.random() < (distL / 5));
         $scope.ins[1].active = (Math.random() < (distR / 5));
-        $scope.ins[2].active = (Math.random() < (3*distL / 5));
-        $scope.ins[3].active = (Math.random() < (3*distR / 5));
+        $scope.ins[2].active = (Math.random() < (3 * distL / 5));
+        $scope.ins[3].active = (Math.random() < (3 * distR / 5));
         for (var m = 0; m < $scope.ins.length; m++) {
             var probArr = [];
             for (j = 0; j < $scope.ins[m].o.length; j++) {
@@ -499,7 +507,7 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
         } else if (!$scope.okayRun) {
             console.log('Death from: killed at', new Date().getTime())
             $scope.lastDeath = 'User';
-            $scope.rpt=false;
+            $scope.rpt = false;
             $scope.die(distL, distR);
         } else if (Math.sqrt(Math.pow(($scope.org.x - $scope.prey.x), 2) + Math.pow(($scope.org.y - $scope.prey.y), 2)) < 35) {
             console.log('Successful hunt!')
@@ -563,16 +571,25 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
             $scope.scoreAvg = $scope.scores.slice(-3).reduce(function(p, c) {
                 return p + c;
             }) / 3;
+            $scope.scoreAvgs.push($scope.scoreAvg);
+            if ($scope.scoreAvgs.length > 50) {
+                $scope.scoreAvgs.shift();
+            }
+            $scope.scoreGraff.data.datasets[1].data.push($scope.scoreAvg);
             $scope.changePaths(score > $scope.scoreAvg);
+        }else{
+            $scope.scoreGraff.data.datasets[1].data.push(score);
         }
         if ($scope.scores.length == 3) {
             $scope.scChart = new Chart(document.querySelector('#score-canv'), $scope.scoreGraff);
         } else if ($scope.scores.length > 3) {
             $scope.scChart.update();
         }
-        if ($scope.scoreGraff.data.labels.length>50){
+        if ($scope.scoreGraff.data.labels.length > 50) {
             $scope.scoreGraff.data.datasets[0].data.shift();
+            $scope.scoreGraff.data.datasets[1].data.shift();
             $scope.scoreGraff.data.labels.shift();
+
         }
         //clear vars
         $scope.running = false;
