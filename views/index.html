@@ -21,6 +21,9 @@
         <div class='row'>
             <div class='col-md-3'>Number of Generations:</div>
             <div class='col-md-8'>{{numGenerations}}</div>
+            <div class='col-md-3'>Score Lookback Size</div>
+            <div class='col-md-3'>{{avgSize}}</div>
+            <div class='col-md-5'><button class='btn btn-sm btn-danger' ng-click='showExpl("avgSize")'>?</button></div>
             <div class='col-md-3'>Recent Average Scores</div>
             <div class='col-md-8' ng-show='scoreAvg!=null'>
                 {{scoreAvg}}
@@ -30,7 +33,7 @@
                 </div>
             </div>
             <div class='col-md-8' ng-show='scoreAvg==null'>
-                Pending: {{3-scores.length}} runs remaining before dynamic adjustment.
+                Pending: {{avgSize-scores.length}} runs remaining before dynamic adjustment.
             </div>
             <div class='col-md-3'>Cause of last reset:</div>
             <div class='col-md-8'>{{lastDeath!='Successful hunt' && lastDeath!=null?'Death from ':''}}{{lastDeath}}</div>
@@ -67,10 +70,13 @@
             </div>
         </div>
         <div class='row'>
-            <div class='col-md-3'>Trace path</div>
-            <div class='col-md-6'>
-                <input type='checkbox' ng-model='tracePath' ng-change='grafWarn(0)' title='Toggle better visibility on connections taken between nodes.' />
+            <div class='col-md-3'>Path Change Method</div>
+            <div class='col-md-2'>
+                <input type="radio" name="pcm" ng-model='pcm' value='mult'> <label>Multiplicative</label>
+                <br>
+                <input type="radio" name="pcm" ng-model='pcm' value='add'> <label>Additive</label>
             </div>
+            <div class='col-md-5'><button class='btn btn-sm btn-danger' ng-click='showExpl("pcm")'>?</button></div>
         </div>
         <div class='row'>
             <div class='col-md-3'>Speed</div>

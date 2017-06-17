@@ -61,6 +61,14 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
         <input type="checkbox" id="con-status" />
     </div>
 </div>
+<br/>
+<br/>
+<div class="form-group col-md-12">
+    <div class="col-md-5">Score Lookback Size (determines learning volatility)</div>
+    <div class="col-md-6">
+        <input type='number' value='3' min='2' max = '30' id='lbs'>
+    </div>
+</div>
 `,
         buttons: {
             confirm: {
@@ -75,6 +83,7 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
                         $scope.numNeurs = parseInt($('#num-in').val());
                         $scope.numBaseCons = $scope.numNeurs * parseInt($('#numConnects').val()) / 100;
                         $scope.hideCons = $('#con-status')[0].checked;
+                        $scope.avgSize = parseInt($('#lbs').val());
                         $scope.$apply();
                         $scope.drawInitBoard();
                         return true;
@@ -170,7 +179,19 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
 </ul>
 
 `, size: 'large' })
-    }
+    };
+    $scope.showExpl = function(m) {
+        if (m == 'avgSize') {
+            bootbox.alert(`<h3>Score Lookback Size</h3> The Score Lookback Size determines the size of the average (number of generations) considered by the score comparison function to consider whether a particular generation is good or bad.`)
+        } else if (m == 'pcm') {
+            bootbox.alert(`<h3>Path Change Method</h3>After each generation is run, this determines how the resultant path is changed.<ul>
+                    <li>If it's multiplicative, the each path's weight is multiplied by 1.1 if successful, and 0.9 if unsuccessful.</li>
+                    <li>If it's additive, 0.02 is added to each path's weight if the run is successful. Otherwise, 0.02 is subtracted (to a minimum of 0.02)</li>
+                </ul>`)
+        }
+    };
+    $scope.pcm = 'add';
+    $scope.avgSize = 3;
     $scope.activeNeurs = [];
     $scope.changeSpeed = function() {
             $scope.speed = (-10 * $scope.speedRaw) + 1010;
@@ -300,12 +321,12 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
                 label: 'Score',
                 data: [],
                 borderColor: '#009',
-                fill:false
+                fill: false
             }, {
                 label: 'Score Average',
                 data: [],
                 borderColor: '#090',
-                fill:false
+                fill: false
             }]
         }
     };
@@ -525,24 +546,32 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
     }
     $scope.changePaths = function(isGood) {
         //neurons
-
         for (var i = 0; i < $scope.currPath[0].length; i++) {
             if ($scope.neurons[$scope.currPath[0][i][0]] && $scope.neurons[$scope.currPath[0][i][0]].o[$scope.currPath[0][i][1]]) {
-                $scope.neurons[$scope.currPath[0][i][0]].o[$scope.currPath[0][i][1]].weight += isGood ? .02 : -.02;
-                //cap values
-                if ($scope.neurons[$scope.currPath[0][i][0]].o[$scope.currPath[0][i][1]].weight < 0.02) {
+                if ($scope.pcm == 'add') {
+                    $scope.neurons[$scope.currPath[0][i][0]].o[$scope.currPath[0][i][1]].weight += isGood ? .02 : -.02;
+                } else {
+                    $scope.neurons[$scope.currPath[0][i][0]].o[$scope.currPath[0][i][1]].weight *= isGood ? 1.1 : 0.9;
+                }
+                //cap vals (add mode only!)
+                if ($scope.neurons[$scope.currPath[0][i][0]].o[$scope.currPath[0][i][1]].weight < 0.02 && $scope.pcm == 'add') {
                     $scope.neurons[$scope.currPath[0][i][0]].o[$scope.currPath[0][i][1]].weight = 0.02;
-                } else if ($scope.neurons[$scope.currPath[0][i][0]].o[$scope.currPath[0][i][1]].weight > 0.98) {
+                } else if ($scope.neurons[$scope.currPath[0][i][0]].o[$scope.currPath[0][i][1]].weight > 0.98 && $scope.pcm == 'add') {
                     $scope.neurons[$scope.currPath[0][i][0]].o[$scope.currPath[0][i][1]].weight = 0.98;
                 }
             }
         }
         for (i = 0; i < $scope.currPath[1].length; i++) {
             if ($scope.ins[$scope.currPath[1][i][0]] && $scope.ins[$scope.currPath[1][i][0]].o[$scope.currPath[1][i][1]]) {
-                $scope.ins[$scope.currPath[1][i][0]].o[$scope.currPath[1][i][1]].weight += isGood ? .02 : -.02;
-                if ($scope.ins[$scope.currPath[1][i][0]].o[$scope.currPath[1][i][1]].weight < 0.02) {
+                if ($scope.pcm == 'add') {
+                    $scope.ins[$scope.currPath[1][i][0]].o[$scope.currPath[1][i][1]].weight += isGood ? .02 : -.02;
+                } else {
+                    $scope.ins[$scope.currPath[1][i][0]].o[$scope.currPath[1][i][1]].weight *= isGood ? 1.1 : 0.9;
+                }
+                //cap vals (add mode only!)
+                if ($scope.ins[$scope.currPath[1][i][0]].o[$scope.currPath[1][i][1]].weight < 0.02 && $scope.pcm == 'add') {
                     $scope.ins[$scope.currPath[1][i][0]].o[$scope.currPath[1][i][1]].weight = 0.02;
-                } else if ($scope.ins[$scope.currPath[1][i][0]].o[$scope.currPath[1][i][1]].weight > 0.98) {
+                } else if ($scope.ins[$scope.currPath[1][i][0]].o[$scope.currPath[1][i][1]].weight > 0.98 && $scope.pcm == 'add') {
                     $scope.ins[$scope.currPath[1][i][0]].o[$scope.currPath[1][i][1]].weight = 0.98
                 }
             }
@@ -566,23 +595,23 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
         $scope.scores.push(score);
         $scope.scoreGraff.data.datasets[0].data.push(score);
         $scope.scoreGraff.data.labels.push($scope.scores.length);
-        if ($scope.scores.length >= 3) {
+        if ($scope.scores.length >= $scope.avgSize) {
             //calc score
-            $scope.scoreAvg = $scope.scores.slice(-3).reduce(function(p, c) {
+            $scope.scoreAvg = $scope.scores.slice(-$scope.avgSize).reduce(function(p, c) {
                 return p + c;
-            }) / 3;
+            }) / $scope.avgSize;
             $scope.scoreAvgs.push($scope.scoreAvg);
             if ($scope.scoreAvgs.length > 50) {
                 $scope.scoreAvgs.shift();
             }
             $scope.scoreGraff.data.datasets[1].data.push($scope.scoreAvg);
             $scope.changePaths(score > $scope.scoreAvg);
-        }else{
+        } else {
             $scope.scoreGraff.data.datasets[1].data.push(score);
         }
-        if ($scope.scores.length == 3) {
+        if ($scope.scores.length == $scope.avgSize) {
             $scope.scChart = new Chart(document.querySelector('#score-canv'), $scope.scoreGraff);
-        } else if ($scope.scores.length > 3) {
+        } else if ($scope.scores.length > $scope.avgSize) {
             $scope.scChart.update();
         }
         if ($scope.scoreGraff.data.labels.length > 50) {
