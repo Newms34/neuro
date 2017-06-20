@@ -232,24 +232,45 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
     $scope.drawInitBoard = function() {
         $scope.totalEn = 120000;
         $scope.remainingEn = $scope.totalEn;
+        $scope.sc = 0;
         $scope.enPerNeur = $scope.totalEn / ($scope.speed * $scope.numNeurs);
         //first, make numNeurons neurons.
         for (var i = 0; i < $scope.numNeurs; i++) {
             $scope.neurons.push(new $scope.neurConst())
         }
 
-        //now, make the 4 directional 'outputs'.
+        //now, make the 4 directional 'output' functions.
         $scope.outs.push(new $scope.outConst('Move right', function() {
-            if ($scope.org.x < $scope.playw - 3) $scope.org.x += 3;
+            if ($scope.org.x < $scope.playw - 3) {
+                $scope.org.x += 3;
+                if($scope.prey.x<$scope.org.x){
+                    $scope.sc--;
+                }
+            }
         }));
         $scope.outs.push(new $scope.outConst('Move left', function() {
-            if ($scope.org.x > 3) $scope.org.x -= 3;
+            if ($scope.org.x > 3) {
+                $scope.org.x -= 3;
+                if($scope.prey.x<$scope.org.x){
+                    $scope.sc++;
+                }
+            }
         }));
         $scope.outs.push(new $scope.outConst('Move down', function() {
-            if ($scope.org.y < $scope.playh - 3) $scope.org.y += 3;
+            if ($scope.org.y < $scope.playh - 3) {
+                $scope.org.y += 3;
+                if($scope.prey.y<$scope.org.y){
+                    $scope.sc--;
+                }
+            }
         }));
         $scope.outs.push(new $scope.outConst('Move up', function() {
-            if ($scope.org.y > 3) $scope.org.y -= 3;
+            if ($scope.org.y > 3) {
+                $scope.org.y -= 3;
+                if($scope.prey.y<$scope.org.y){
+                    $scope.sc++;
+                }
+            }
         }));
 
         //now, the four inputs (2 per eye: one large, one small)
@@ -549,9 +570,9 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
         for (var i = 0; i < $scope.currPath[0].length; i++) {
             if ($scope.neurons[$scope.currPath[0][i][0]] && $scope.neurons[$scope.currPath[0][i][0]].o[$scope.currPath[0][i][1]]) {
                 if ($scope.pcm == 'add') {
-                    $scope.neurons[$scope.currPath[0][i][0]].o[$scope.currPath[0][i][1]].weight += isGood ? .02 : -.02;
+                    $scope.neurons[$scope.currPath[0][i][0]].o[$scope.currPath[0][i][1]].weight += isGood ? .04 : -.02;
                 } else {
-                    $scope.neurons[$scope.currPath[0][i][0]].o[$scope.currPath[0][i][1]].weight *= isGood ? 1.1 : 0.9;
+                    $scope.neurons[$scope.currPath[0][i][0]].o[$scope.currPath[0][i][1]].weight *= isGood ? 1.2 : 0.9;
                 }
                 //cap vals (add mode only!)
                 if ($scope.neurons[$scope.currPath[0][i][0]].o[$scope.currPath[0][i][1]].weight < 0.02 && $scope.pcm == 'add') {
@@ -564,9 +585,9 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
         for (i = 0; i < $scope.currPath[1].length; i++) {
             if ($scope.ins[$scope.currPath[1][i][0]] && $scope.ins[$scope.currPath[1][i][0]].o[$scope.currPath[1][i][1]]) {
                 if ($scope.pcm == 'add') {
-                    $scope.ins[$scope.currPath[1][i][0]].o[$scope.currPath[1][i][1]].weight += isGood ? .02 : -.02;
+                    $scope.ins[$scope.currPath[1][i][0]].o[$scope.currPath[1][i][1]].weight += isGood ? .04 : -.02;
                 } else {
-                    $scope.ins[$scope.currPath[1][i][0]].o[$scope.currPath[1][i][1]].weight *= isGood ? 1.1 : 0.9;
+                    $scope.ins[$scope.currPath[1][i][0]].o[$scope.currPath[1][i][1]].weight *= isGood ? 1.2 : 0.9;
                 }
                 //cap vals (add mode only!)
                 if ($scope.ins[$scope.currPath[1][i][0]].o[$scope.currPath[1][i][1]].weight < 0.02 && $scope.pcm == 'add') {
@@ -591,6 +612,12 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
             score += $scope.org.y < $scope.prey.y ? 40 : 0;
             score += 60 * ($scope.playw - Math.abs($scope.prey.x - $scope.org.x)) / $scope.playw;
         }
+        // if ($scope.sc>0){
+        //     score+=90
+        // }else{
+        //     score-=90;
+        // }
+        score+=$scope.sc;
         //find out what to do with score;
         $scope.scores.push(score);
         $scope.scoreGraff.data.datasets[0].data.push(score);
