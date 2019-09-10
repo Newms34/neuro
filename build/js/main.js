@@ -190,7 +190,7 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
                 </ul>`)
         }
     };
-    $scope.pcm = 'add';
+    $scope.pcm = 'mult';
     $scope.avgSize = 3;
     $scope.activeNeurs = [];
     $scope.changeSpeed = function() {
@@ -629,7 +629,9 @@ var app = angular.module('neur-app', []).controller('neur-con', function($scope,
             }) / $scope.avgSize;
             $scope.scoreAvgs.push($scope.scoreAvg);
             if ($scope.scoreAvgs.length > 50) {
+                //remove earliest scores, since we have more than 50
                 $scope.scoreAvgs.shift();
+                $scope.scores.shift();
             }
             $scope.scoreGraff.data.datasets[1].data.push($scope.scoreAvg);
             $scope.changePaths(score > $scope.scoreAvg);

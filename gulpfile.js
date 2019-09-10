@@ -31,23 +31,31 @@ gulp.task('sass', function() {
 gulp.task('scripts', function() {
     return gulp.src(['build/js/**/*.js', 'build/js/*.js'])
         .pipe(concat('main.js'))
-        // .pipe(gulp.dest('public/js'))
-        // .pipe(rename('all.min.js'))
         .pipe(babel({presets: ['es2015']}))
         .pipe(ngAnnotate())
         .pipe(uglify().on('error', gutil.log))
         .pipe(gulp.dest('public/js'));
 });
 
+//move workers
+gulp.task('work', function() {
+    return gulp.src(['build/workers/*.js'])
+        .pipe(concat('rb.js'))
+        .pipe(babel({presets: ['es2015']}))
+        // .pipe(uglify().on('error', gutil.log))
+        .pipe(gulp.dest('public/js'));
+});
+
+
 
 // Watch Files For Changes
 gulp.task('watch', function() {
-    gulp.watch(['build/js/**/*.js', 'build/js/*.js'], ['lint', 'scripts']);
+    gulp.watch(['build/js/**/*.js', 'build/js/*.js','build/workers/*.js'], ['lint', 'scripts','work']);
     gulp.watch(['build/scss/*.scss', 'build/scss/**/*.scss'], ['sass']);
 });
 
 //no watchin!
-gulp.task('render', ['lint', 'sass', 'scripts'])
+gulp.task('render', ['lint', 'sass', 'scripts','work'])
 
 // Default Task
-gulp.task('default', ['lint', 'sass', 'scripts', 'watch']);
+gulp.task('default', ['lint', 'sass', 'scripts','work', 'watch']);
